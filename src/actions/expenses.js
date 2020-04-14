@@ -1,23 +1,50 @@
 import uuid from 'uuid';
+import database from '../firebase/firebase';
 
 // ADD_EXPENSE
-export const addExpense = (
-  {
-    description = '',
-    note = '',
-    amount = 0,
-    createdAt = 0
-  } = {}
-) => ({
+export const addExpense = (expense) => ({
   type: 'ADD_EXPENSE',
-  expense: {
-    id: uuid(),
-    description,
-    note,
-    amount,
-    createdAt
-  }
+  expense
 });
+
+// export const addExpense = (    this is used when Firebase is not used
+//   {
+//     description = '',
+//     note = '',
+//     amount = 0,
+//     createdAt = 0
+//   } = {}
+// ) => ({
+//   type: 'ADD_EXPENSE',
+//   expense: {
+//     id: uuid(),
+//     description,
+//     note,
+//     amount,
+//     createdAt
+//   }
+// });
+
+export const startAddExpense = (expenseData = {}) => {   ///this is used to sync data to firebase then to redux store
+  return (dispatch) => {
+    const {
+      description = '',
+      note = '',
+      amount = 0,
+      createdAt = 0
+    } = expenseData;
+
+    const expense = { description, note, amount, createdAt };
+
+    return database.ref('expenses').push(expense)    ////this pushs the data to firebase 
+      .then((ref) => {
+        dispatch(addExpense({   ///this dispatches data to redux store
+          id: ref.key,
+          ...expense
+        }));
+      });
+  };
+};
 
 // REMOVE_EXPENSE
 export const removeExpense = ({ id } = {}) => ({
